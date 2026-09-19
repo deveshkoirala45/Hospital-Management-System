@@ -1,4 +1,11 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
+export async function connectDb() {
+    const uri = process.env.MONGO_URI;
+    await mongoose.connect(uri);
+    console.log("connected")
+}
 const userSchema = new mongoose.Schema({
     name: {type: String, required: true},
     emailId: {type: String, required: true},
@@ -8,7 +15,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 })
 
-export const UserModel = mongoose.Model("User", userSchema);
+export const UserModel = mongoose.model("User", userSchema);
 
 const docSchema = new mongoose.Schema({
     name: {type: String, required: true},
@@ -16,12 +23,12 @@ const docSchema = new mongoose.Schema({
     emailId: {type: String, required: true},
     phNo: {type: String, required: true},
     fees: {type: Number, required: true},
-    availability: {type: Arr[Strings], required: true, default: []},
+    availability: {type: [String], required: true, default: []},
 },{
     timestamps: true
 })
 
-export const docModel = mongoose.Model("doc", docSchema);
+export const docModel = mongoose.model("doc", docSchema);
 
 const patientSchema = new mongoose.Schema({
     name: {type: String, required: true},
@@ -33,4 +40,4 @@ const patientSchema = new mongoose.Schema({
     timestamps: true
 })
 
-export const patient = mongoose.Model("patient", patientSchema);
+export const patient = mongoose.model("patient", patientSchema);
