@@ -16,5 +16,5 @@ export const patientValidation = zod.object({
 
 export const signinValidation = zod.object({
     emailId: zod.string().email(),
-    password: zod.string.min(6,"minimum 6 characters required")
+    password: zod.string().min(6,"minimum 6 characters required")
 })
