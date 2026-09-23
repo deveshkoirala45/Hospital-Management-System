@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
-import { connectDb } from "./db.js"
+import { connectDb, patient } from "./db.js"
+import { userValidation, patientValidation, signinValidation } from "./validation.js";
+import bcrypt from "bcrypt";
 dotenv.config()
 connectDb();
 import { UserModel } from "./db.js"
@@ -13,35 +15,61 @@ app.get("/", (req, res)=>{
 })
 app.use(express.json());
 
-app.post("/signup", async(req, res)=> {
-    const name = req.body.name;
-    const emailId= req.body.emailId;
-    const password = req.body.password;
-    const role = req.body.role;
-
-    if(!name || !emailId || !password || !role ) {
-        return res.status(400).json({
-            msg: "Enter every credentials"
-        })
-    }
-    const userExist = await UserModel.findOne({ emailId })
-    if(userExist){
-        return res.status(409).json({
-            msg: "User already exist use new email"
-        })
-    }
-    const user = await UserModel.create({
-        name, emailId, password, role
+app.post("/signup", async (req,res)=>{
+    const result = userValidation.safeParse(req.body)
+    if(!result)
+        return res.json({
+        msg: "Invalid Credentials",
+        error: result.error.issues
     })
-    res.json({
-        msg: "signup completed",
-        data: {
-            user
+    const { name, emailId, password, role} = result.data;
+    
+    if(!name || !emailId || !password || !role){
+        return res.json({
+            msg: "Enter all credentials"
+        })
+    }
+    
+    const userExist = await UserModel.findOne({emailId})
+        if(userExist){
+                return res.json({
+                msg: "User already exist, Enter unique Id"
+            })
         }
+    
+    const hashpassword = await bcrypt.hash(password, 10)
+
+    const createUser = await UserModel.create({
+
+        name, 
+        emailId, 
+        password: hashpassword,
+        role
     })
+        return res.json({
+        msg: "User added successfully",
+        createUser,
+        hashpassword
+    })
+})
 
+app.post("/patient", async(req,res)=>{
+    const result = patientValidation.safeParse(req.body)
+    if(!result)
+        return res.json({
+            msg: "Invalid credentials",
+            error: result.error.issues
+    })
+    const { name, gender, age, bloodGroup, address } = result.data
 
-
+    const patientcreate = await patient.create({
+        name , gender, age, bloodGroup, address
+    })
+    
+    return res.json({
+        msg: "Patient records created successfully",
+        patientcreate
+    })
 })
 
 app.listen(port, ()=>{
